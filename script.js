@@ -64,6 +64,8 @@ function updateTable() {
         });
         tbody.appendChild(row);
     });
+    
+    applyColumnVisibility();
 }
 
 function sortTable(column) {
@@ -117,17 +119,53 @@ function setupColumnFilters() {
         checkboxContainer.appendChild(label);
     });
 
+     // Set default hidden columns
+    const defaultHiddenColumns = [
+        'First Stage', 'Final Stage', 'Legendary',
+        'Stat Balance', 'Head Stat Balance', 'Body Stat Balance'
+    ];
+    
+    checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        if (defaultHiddenColumns.includes(checkbox.dataset.column)) {
+            checkbox.checked = true;
+        }
+    });
+    
     container.appendChild(checkboxContainer);
+    updateColumnVisibility();
 }
 
 function updateColumnVisibility() {
-    const table = document.getElementById('pokemon-table');
+    const hiddenColumns = new Set();
     const checkboxes = document.querySelectorAll('#column-filters input[type="checkbox"]');
     
     checkboxes.forEach((checkbox, index) => {
+        if (checkbox.checked) {
+            hiddenColumns.add(checkbox.dataset.column);
+        }
+    });
+
+    // Store hidden columns in localStorage
+    localStorage.setItem('hiddenColumns', JSON.stringify([...hiddenColumns]));
+    applyColumnVisibility();
+}
+
+// Add this new function:
+function applyColumnVisibility() {
+    const hiddenColumns = new Set(JSON.parse(localStorage.getItem('hiddenColumns') || '[]'));
+    const table = document.getElementById('pokemon-table');
+    
+    // Update checkboxes to match stored state
+    const checkboxes = document.querySelectorAll('#column-filters input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = hiddenColumns.has(checkbox.dataset.column);
+    });
+
+    // Hide columns
+    Object.keys(pokemonData[0]).forEach((column, index) => {
         const cells = table.querySelectorAll(`tr > *:nth-child(${index + 1})`);
         cells.forEach(cell => {
-            cell.style.display = checkbox.checked ? 'none' : '';
+            cell.style.display = hiddenColumns.has(column) ? 'none' : '';
         });
     });
 }
@@ -135,7 +173,8 @@ function updateColumnVisibility() {
 function setupTypeFilters() {
     const types = ['Normal', 'Grass', 'Fire', 'Water', 'Bug', 'Poison', 'Flying', 
                   'Rock', 'Ground', 'Fairy', 'Fighting', 'Psychic', 'Dark', 'Ghost', 
-                  'Ice', 'Steel', 'Dragon'];
+                  'Ice', 'Steel', 'Dragon', 'Electric'];
+    const type2Types = [...types, 'None'];
 
     const type1Container = document.getElementById('type1-filters');
     const type2Container = document.getElementById('type2-filters');
@@ -145,18 +184,19 @@ function setupTypeFilters() {
         const label1 = document.createElement('label');
         const checkbox1 = document.createElement('input');
         checkbox1.type = 'checkbox';
-        checkbox1.dataset.type = type;
+        checkbox1.dataset.type = type.toUpperCase();
         checkbox1.dataset.category = 'type1';
         checkbox1.addEventListener('change', updateTable);
         label1.appendChild(checkbox1);
         label1.appendChild(document.createTextNode(type));
         type1Container.appendChild(label1);
+    });
 
-        // Type 2 checkbox
+    type2Types.forEach(type => {
         const label2 = document.createElement('label');
         const checkbox2 = document.createElement('input');
         checkbox2.type = 'checkbox';
-        checkbox2.dataset.type = type;
+        checkbox2.dataset.type = type === 'None' ? '' : type.toUpperCase();
         checkbox2.dataset.category = 'type2';
         checkbox2.addEventListener('change', updateTable);
         label2.appendChild(checkbox2);
@@ -177,9 +217,9 @@ function setupStatRanges() {
         { name: 'BST', min: 1, max: 800, step: 1 },
         { name: 'Head Stat Total', min: 1, max: 800, step: 1 },
         { name: 'Body Stat Total', min: 1, max: 800, step: 1 },
-        { name: 'Stat Balance', min: 0, max: 1, step: 0.01 },
-        { name: 'Head Stat Balance', min: 0, max: 1, step: 0.01 },
-        { name: 'Body Stat Balance', min: 0, max: 1, step: 0.01 }
+        { name: 'Stat Balance', min: 0, max: 1.5, step: 0.01 },
+        { name: 'Head Stat Balance', min: 0, max: 1.5, step: 0.01 },
+        { name: 'Body Stat Balance', min: 0, max: 1.5, step: 0.01 }
     ];
 
     stats.forEach(stat => {
@@ -206,32 +246,22 @@ function setupStatRanges() {
         maxInput.max = stat.max;
         maxInput.step = stat.step;
 
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.multiple = true;
-        slider.min = stat.min;
-        slider.max = stat.max;
-        slider.step = stat.step;
-        slider.dataset.stat = stat.name;
-
-        // Event listeners
         [minInput, maxInput].forEach(input => {
-            input.addEventListener('change', () => {
-                updateTable();
-            });
+            input.addEventListener('change', updateTable);
         });
 
         rangeValues.appendChild(minInput);
         rangeValues.appendChild(maxInput);
         sliderContainer.appendChild(label);
         sliderContainer.appendChild(rangeValues);
-        sliderContainer.appendChild(slider);
         container.appendChild(sliderContainer);
     });
 }
 
 function setupMiscFilters() {
     document.getElementById('show-legendaries').addEventListener('change', updateTable);
+    document.getElementById('first-stages').checked = false;
+    document.getElementById('final-stages').checked = false;
     document.getElementById('first-stages').addEventListener('change', updateTable);
     document.getElementById('final-stages').addEventListener('change', updateTable);
 }
