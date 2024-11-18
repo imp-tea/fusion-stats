@@ -1,0 +1,84 @@
+/* styles.css */
+body {
+    background-color: #2E0057; /* Dark purple */
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+a {
+    color: #FFD700; /* Light yellow */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid white;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #4B0082; /* Darker purple */
+    cursor: pointer;
+    position: sticky;
+    top: 0;
+}
+
+th:hover {
+    background-color: #6A0DAD;
+}
+
+#filters {
+    margin: 20px;
+}
+
+#filters details {
+    margin-bottom: 10px;
+}
+
+#filters label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="checkbox"], input[type="number"] {
+    margin-right: 5px;
+}
+
+#filters strong {
+    display: block;
+    margin-top: 10px;
+}
+
+#statRanges div {
+    margin-bottom: 10px;
+}
+
+#statRanges label {
+    margin-right: 10px;
+}
+
+#miscOptions label {
+    margin-bottom: 5px;
+}
+
+details summary {
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #FFD700; /* Light yellow */
+}
+
+details div {
+    margin-left: 20px;
+}
+
