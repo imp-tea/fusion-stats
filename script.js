@@ -125,7 +125,7 @@ function generateFilters() {
     });
 
     // Exclude Types
-    const types = ["Normal", "Grass", "Fire", "Water", "Bug", "Poison", "Flying", "Rock", "Ground", "Fairy", "Fighting", "Psychic", "Dark", "Ghost", "Ice", "Steel", "Dragon"];
+    const types = ["NORMAL", "GRASS", "FIRE", "WATER", "BUG", "POISON", "FLYING", "ROCK", "GROUND", "FAIRY", "FIGHTING", "PSYCHIC", "DARK", "GHOST", "ICE", "STEEL", "DRAGON"];
     const excludeType1Div = document.getElementById('excludeType1');
     const excludeType2Div = document.getElementById('excludeType2');
 
@@ -163,9 +163,9 @@ function generateFilters() {
         { name: 'BST', min: 1, max: 800, step: 1 },
         { name: 'Head Stat Total', min: 1, max: 255 * 3, step: 1 },
         { name: 'Body Stat Total', min: 1, max: 255 * 3, step: 1 },
-        { name: 'Stat Balance', min: 0, max: 1, step: 0.01 },
-        { name: 'Head Stat Balance', min: 0, max: 1, step: 0.01 },
-        { name: 'Body Stat Balance', min: 0, max: 1, step: 0.01 }
+        { name: 'Stat Balance', min: 0, max: 1.5, step: 0.01 },
+        { name: 'Head Stat Balance', min: 0, max: 1.5, step: 0.01 },
+        { name: 'Body Stat Balance', min: 0, max: 1.5, step: 0.01 }
     ];
 
     stats.forEach(stat => {
@@ -201,8 +201,8 @@ function generateFilters() {
     const miscOptionsDiv = document.getElementById('miscOptions');
     const options = [
         { name: 'Show Legendaries', default: true },
-        { name: 'First Stages Only', default: true },
-        { name: 'Final Stages Only', default: true }
+        { name: 'First Stages Only', default: false },
+        { name: 'Final Stages Only', default: false }
     ];
     options.forEach(option => {
         const label = document.createElement('label');
@@ -237,9 +237,10 @@ function applyFilters() {
         const statDivs = statRangesDiv.querySelectorAll('div');
         let passStatRanges = true;
         statDivs.forEach(statDiv => {
+            const inputs = statDiv.querySelectorAll('input');
             const statName = statDiv.querySelector('label').textContent;
-            const min = parseFloat(statDiv.querySelector('input:nth-child(2)').value);
-            const max = parseFloat(statDiv.querySelector('input:nth-child(4)').value);
+            const min = parseFloat(inputs[0].value);
+            const max = parseFloat(inputs[1].value);
             const value = parseFloat(row[statName]);
             if (value < min || value > max) {
                 passStatRanges = false;
@@ -258,10 +259,10 @@ function applyFilters() {
         if (!showLegendaries && row['Legendary'] === 'True') {
             return false;
         }
-        if (firstStagesOnly && row['First Stage'] === 'False') {
+        if (firstStagesOnly && row['First Stage'] !== 'True') {
             return false;
         }
-        if (finalStagesOnly && row['Final Stage'] === 'False') {
+        if (finalStagesOnly && row['Final Stage'] !== 'True') {
             return false;
         }
 
