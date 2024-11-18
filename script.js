@@ -1,158 +1,172 @@
 // script.js
-const columns = [
-    "Number", "Name", "HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed",
-    "Type 1", "Type 2", "First Stage", "Final Stage", "Legendary", "BST",
-    "Head Stat Total", "Body Stat Total", "Stat Balance", "Head Stat Balance", "Body Stat Balance"
-];
-
-let tableData = [];
-let filteredData = [];
-let sortColumn = null;
+let pokemonData = [];
+let currentSortColumn = null;
 let sortAscending = true;
 
-fetch('stats.csv')
-    .then(response => response.text())
-    .then(data => {
-        tableData = parseCSV(data);
-        filteredData = tableData.slice(); // Make a copy
-        generateTable(filteredData);
-        generateFilters();
+// Fetch and parse CSV data
+async function loadData() {
+    const response = await fetch('stats.csv');
+    const text = await response.text();
+    const rows = text.split('\n');
+    const headers = rows[0].split(',');
+    
+    pokemonData = rows.slice(1).map(row => {
+        const values = row.split(',');
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = values[index];
+        });
+        return obj;
     });
 
-function parseCSV(data) {
-    const lines = data.trim().split('\n');
-    const headers = lines[0].split(',');
-    const result = [];
-    for(let i = 1; i < lines.length; i++) {
-        const obj = {};
-        const currentline = lines[i].split(',');
-        for(let j = 0; j < headers.length; j++) {
-            obj[headers[j]] = currentline[j];
-        }
-        result.push(obj);
-    }
-    return result;
+    setupTable();
+    setupFilters();
 }
 
-function generateTable(data) {
-    const table = document.getElementById('statsTable');
-    table.innerHTML = ''; // Clear existing table content
+function setupTable() {
+    const table = document.getElementById('pokemon-table');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
 
-    const thead = document.createElement('thead');
-    const tbody = document.createElement('tbody');
-
-    // Create header row
+    // Setup headers
     const headerRow = document.createElement('tr');
-    columns.forEach(column => {
+    Object.keys(pokemonData[0]).forEach(key => {
         const th = document.createElement('th');
-        th.textContent = column;
-        if (sortColumn === column) {
-            th.textContent += sortAscending ? ' ▲' : ' ▼';
-        }
-        th.addEventListener('click', () => {
-            sortTableByColumn(filteredData, column);
-            generateTable(filteredData);
-        });
+        th.textContent = key;
+        th.onclick = () => sortTable(key);
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
-    table.appendChild(thead);
 
-    // Create data rows
-    data.forEach(row => {
-        const tr = document.createElement('tr');
-        columns.forEach(column => {
-            const td = document.createElement('td');
-            if (column === 'Name') {
-                const a = document.createElement('a');
-                a.textContent = row[column];
-                a.href = `https://www.fusiondex.org/#/${row['Number']}`;
-                td.appendChild(a);
-            } else {
-                td.textContent = row[column];
-            }
-            tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
+    // Populate table
+    updateTable();
 }
 
-function sortTableByColumn(data, column) {
-    if (sortColumn === column) {
+function updateTable() {
+    const tbody = document.querySelector('#pokemon-table tbody');
+    tbody.innerHTML = '';
+
+    const visibleData = filterData();
+
+    visibleData.forEach(pokemon => {
+        const row = document.createElement('tr');
+        Object.entries(pokemon).forEach(([key, value]) => {
+            const td = document.createElement('td');
+            if (key === 'Name') {
+                const link = document.createElement('a');
+                link.href = `https://www.fusiondex.org/${pokemon.Number}/`;
+                link.textContent = value;
+                td.appendChild(link);
+            } else {
+                td.textContent = value;
+            }
+            row.appendChild(td);
+        });
+        tbody.appendChild(row);
+    });
+}
+
+function sortTable(column) {
+    if (currentSortColumn === column) {
         sortAscending = !sortAscending;
     } else {
-        sortColumn = column;
+        currentSortColumn = column;
         sortAscending = true;
     }
-    data.sort((a, b) => {
-        let valA = a[column];
-        let valB = b[column];
 
-        // Convert numerical values to numbers
-        if (!isNaN(valA) && !isNaN(valB)) {
-            valA = Number(valA);
-            valB = Number(valB);
-        } else {
-            // For boolean columns ('First Stage', 'Final Stage', 'Legendary')
-            if (valA === 'True') valA = true;
-            if (valA === 'False') valA = false;
-            if (valB === 'True') valB = true;
-            if (valB === 'False') valB = false;
+    pokemonData.sort((a, b) => {
+        let valueA = a[column];
+        let valueB = b[column];
+
+        if (!isNaN(valueA)) {
+            valueA = Number(valueA);
+            valueB = Number(valueB);
         }
 
-        if (valA < valB) return sortAscending ? -1 : 1;
-        if (valA > valB) return sortAscending ? 1 : -1;
+        if (valueA < valueB) return sortAscending ? -1 : 1;
+        if (valueA > valueB) return sortAscending ? 1 : -1;
         return 0;
     });
+
+    updateTable();
 }
 
-function generateFilters() {
-    // Hide Columns
-    const hideColumnsDiv = document.getElementById('hideColumns');
-    columns.forEach(column => {
+function setupFilters() {
+    setupColumnFilters();
+    setupTypeFilters();
+    setupStatRanges();
+    setupMiscFilters();
+}
+
+// script.js (continued)
+
+function setupColumnFilters() {
+    const container = document.getElementById('column-filters');
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.className = 'checkbox-container';
+
+    Object.keys(pokemonData[0]).forEach(column => {
         const label = document.createElement('label');
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.value = column;
-        checkbox.addEventListener('change', () => {
-            // Show or hide the column
-            toggleColumnVisibility(column, checkbox.checked);
-        });
+        checkbox.dataset.column = column;
+        checkbox.addEventListener('change', updateColumnVisibility);
+        
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(column));
-        hideColumnsDiv.appendChild(label);
+        checkboxContainer.appendChild(label);
     });
 
-    // Exclude Types
-    const types = ["NORMAL", "GRASS", "FIRE", "WATER", "BUG", "POISON", "FLYING", "ROCK", "GROUND", "FAIRY", "FIGHTING", "PSYCHIC", "DARK", "GHOST", "ICE", "STEEL", "DRAGON"];
-    const excludeType1Div = document.getElementById('excludeType1');
-    const excludeType2Div = document.getElementById('excludeType2');
+    container.appendChild(checkboxContainer);
+}
+
+function updateColumnVisibility() {
+    const table = document.getElementById('pokemon-table');
+    const checkboxes = document.querySelectorAll('#column-filters input[type="checkbox"]');
+    
+    checkboxes.forEach((checkbox, index) => {
+        const cells = table.querySelectorAll(`tr > *:nth-child(${index + 1})`);
+        cells.forEach(cell => {
+            cell.style.display = checkbox.checked ? 'none' : '';
+        });
+    });
+}
+
+function setupTypeFilters() {
+    const types = ['Normal', 'Grass', 'Fire', 'Water', 'Bug', 'Poison', 'Flying', 
+                  'Rock', 'Ground', 'Fairy', 'Fighting', 'Psychic', 'Dark', 'Ghost', 
+                  'Ice', 'Steel', 'Dragon'];
+
+    const type1Container = document.getElementById('type1-filters');
+    const type2Container = document.getElementById('type2-filters');
 
     types.forEach(type => {
-        // Type 1
+        // Type 1 checkbox
         const label1 = document.createElement('label');
         const checkbox1 = document.createElement('input');
         checkbox1.type = 'checkbox';
-        checkbox1.value = type;
-        checkbox1.addEventListener('change', applyFilters);
+        checkbox1.dataset.type = type;
+        checkbox1.dataset.category = 'type1';
+        checkbox1.addEventListener('change', updateTable);
         label1.appendChild(checkbox1);
         label1.appendChild(document.createTextNode(type));
-        excludeType1Div.appendChild(label1);
+        type1Container.appendChild(label1);
 
-        // Type 2
+        // Type 2 checkbox
         const label2 = document.createElement('label');
         const checkbox2 = document.createElement('input');
         checkbox2.type = 'checkbox';
-        checkbox2.value = type;
-        checkbox2.addEventListener('change', applyFilters);
+        checkbox2.dataset.type = type;
+        checkbox2.dataset.category = 'type2';
+        checkbox2.addEventListener('change', updateTable);
         label2.appendChild(checkbox2);
         label2.appendChild(document.createTextNode(type));
-        excludeType2Div.appendChild(label2);
+        type2Container.appendChild(label2);
     });
+}
 
-    // Stat Ranges
-    const statRangesDiv = document.getElementById('statRanges');
+function setupStatRanges() {
+    const container = document.getElementById('stat-ranges');
     const stats = [
         { name: 'HP', min: 1, max: 255, step: 1 },
         { name: 'Attack', min: 1, max: 255, step: 1 },
@@ -161,139 +175,105 @@ function generateFilters() {
         { name: 'Special Defense', min: 1, max: 255, step: 1 },
         { name: 'Speed', min: 1, max: 255, step: 1 },
         { name: 'BST', min: 1, max: 800, step: 1 },
-        { name: 'Head Stat Total', min: 1, max: 255 * 3, step: 1 },
-        { name: 'Body Stat Total', min: 1, max: 255 * 3, step: 1 },
-        { name: 'Stat Balance', min: 0, max: 1.5, step: 0.01 },
-        { name: 'Head Stat Balance', min: 0, max: 1.5, step: 0.01 },
-        { name: 'Body Stat Balance', min: 0, max: 1.5, step: 0.01 }
+        { name: 'Head Stat Total', min: 1, max: 800, step: 1 },
+        { name: 'Body Stat Total', min: 1, max: 800, step: 1 },
+        { name: 'Stat Balance', min: 0, max: 1, step: 0.01 },
+        { name: 'Head Stat Balance', min: 0, max: 1, step: 0.01 },
+        { name: 'Body Stat Balance', min: 0, max: 1, step: 0.01 }
     ];
 
     stats.forEach(stat => {
-        const container = document.createElement('div');
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+
         const label = document.createElement('label');
         label.textContent = stat.name;
-
+        
+        const rangeValues = document.createElement('div');
+        rangeValues.className = 'range-values';
+        
         const minInput = document.createElement('input');
         minInput.type = 'number';
+        minInput.value = stat.min;
         minInput.min = stat.min;
         minInput.max = stat.max;
         minInput.step = stat.step;
-        minInput.value = stat.min;
-        minInput.addEventListener('change', applyFilters);
-
+        
         const maxInput = document.createElement('input');
         maxInput.type = 'number';
+        maxInput.value = stat.max;
         maxInput.min = stat.min;
         maxInput.max = stat.max;
         maxInput.step = stat.step;
-        maxInput.value = stat.max;
-        maxInput.addEventListener('change', applyFilters);
 
-        container.appendChild(label);
-        container.appendChild(minInput);
-        container.appendChild(document.createTextNode(' - '));
-        container.appendChild(maxInput);
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.multiple = true;
+        slider.min = stat.min;
+        slider.max = stat.max;
+        slider.step = stat.step;
+        slider.dataset.stat = stat.name;
 
-        statRangesDiv.appendChild(container);
-    });
+        // Event listeners
+        [minInput, maxInput].forEach(input => {
+            input.addEventListener('change', () => {
+                updateTable();
+            });
+        });
 
-    // Misc Options
-    const miscOptionsDiv = document.getElementById('miscOptions');
-    const options = [
-        { name: 'Show Legendaries', default: true },
-        { name: 'First Stages Only', default: false },
-        { name: 'Final Stages Only', default: false }
-    ];
-    options.forEach(option => {
-        const label = document.createElement('label');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = option.default;
-        checkbox.addEventListener('change', applyFilters);
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(option.name));
-        miscOptionsDiv.appendChild(label);
+        rangeValues.appendChild(minInput);
+        rangeValues.appendChild(maxInput);
+        sliderContainer.appendChild(label);
+        sliderContainer.appendChild(rangeValues);
+        sliderContainer.appendChild(slider);
+        container.appendChild(sliderContainer);
     });
 }
 
-function applyFilters() {
-    // Start with the full data set
-    filteredData = tableData.filter(row => {
-        // Apply filters
+function setupMiscFilters() {
+    document.getElementById('show-legendaries').addEventListener('change', updateTable);
+    document.getElementById('first-stages').addEventListener('change', updateTable);
+    document.getElementById('final-stages').addEventListener('change', updateTable);
+}
 
-        // Exclude Types
-        const excludeType1 = Array.from(document.querySelectorAll('#excludeType1 input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
-        const excludeType2 = Array.from(document.querySelectorAll('#excludeType2 input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+function filterData() {
+    return pokemonData.filter(pokemon => {
+        // Type filters
+        const excludedType1s = [...document.querySelectorAll('#type1-filters input:checked')]
+            .map(cb => cb.dataset.type);
+        const excludedType2s = [...document.querySelectorAll('#type2-filters input:checked')]
+            .map(cb => cb.dataset.type);
 
-        if (excludeType1.includes(row['Type 1'])) {
-            return false;
-        }
-        if (excludeType2.includes(row['Type 2'])) {
-            return false;
-        }
+        if (excludedType1s.includes(pokemon['Type 1'])) return false;
+        if (excludedType2s.includes(pokemon['Type 2'])) return false;
 
-        // Stat Ranges
-        const statRangesDiv = document.getElementById('statRanges');
-        const statDivs = statRangesDiv.querySelectorAll('div');
-        let passStatRanges = true;
-        statDivs.forEach(statDiv => {
-            const inputs = statDiv.querySelectorAll('input');
-            const statName = statDiv.querySelector('label').textContent;
-            const min = parseFloat(inputs[0].value);
-            const max = parseFloat(inputs[1].value);
-            const value = parseFloat(row[statName]);
-            if (value < min || value > max) {
-                passStatRanges = false;
-            }
-        });
-        if (!passStatRanges) {
-            return false;
+        // Stat range filters
+        const statContainers = document.querySelectorAll('.slider-container');
+        for (const container of statContainers) {
+            const stat = container.querySelector('label').textContent;
+            const [min, max] = [...container.querySelectorAll('input[type="number"]')]
+                .map(input => parseFloat(input.value));
+            const value = parseFloat(pokemon[stat]);
+            if (value < min || value > max) return false;
         }
 
-        // Misc Options
-        const miscOptions = document.querySelectorAll('#miscOptions input[type="checkbox"]');
-        let showLegendaries = miscOptions[0].checked;
-        let firstStagesOnly = miscOptions[1].checked;
-        let finalStagesOnly = miscOptions[2].checked;
+        // Misc filters
+        if (!document.getElementById('show-legendaries').checked && pokemon.Legendary === 'True') return false;
+        if (document.getElementById('first-stages').checked && pokemon['First Stage'] === 'False') return false;
+        if (document.getElementById('final-stages').checked && pokemon['Final Stage'] === 'False') return false;
 
-        if (!showLegendaries && row['Legendary'] === 'True') {
-            return false;
-        }
-        if (firstStagesOnly && row['First Stage'] !== 'True') {
-            return false;
-        }
-        if (finalStagesOnly && row['Final Stage'] !== 'True') {
-            return false;
-        }
-
-        // All filters passed
         return true;
     });
-
-    // Re-sort filtered data
-    if (sortColumn) {
-        sortTableByColumn(filteredData, sortColumn);
-    }
-
-    generateTable(filteredData);
 }
 
-function toggleColumnVisibility(column, hide) {
-    const table = document.getElementById('statsTable');
-    const columnIndex = columns.indexOf(column);
-
-    // Hide or show column headers
-    const headerCells = table.querySelectorAll('thead th');
-    if (headerCells[columnIndex]) {
-        headerCells[columnIndex].style.display = hide ? 'none' : '';
+function toggleTreeItem(header) {
+    const content = header.nextElementSibling;
+    content.classList.toggle('active');
+    header.textContent = header.textContent.replace('▼', '▶');
+    if (content.classList.contains('active')) {
+        header.textContent = header.textContent.replace('▶', '▼');
     }
-
-    // Hide or show column cells
-    const rows = table.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells[columnIndex]) {
-            cells[columnIndex].style.display = hide ? 'none' : '';
-        }
-    });
 }
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', loadData);
