@@ -1,12 +1,12 @@
 /* styles.css */
 body {
-    background-color: #2E0057; /* Dark purple */
+    background-color: #201035; /* Dark purple */
     color: white;
     font-family: Arial, sans-serif;
 }
 
 a {
-    color: #FFD700; /* Light yellow */
+    color: #FFD780; /* Light yellow */
     text-decoration: none;
 }
 
@@ -27,7 +27,7 @@ th, td {
 }
 
 th {
-    background-color: #4B0082; /* Darker purple */
+    background-color: #1B0022; /* Darker purple */
     cursor: pointer;
     position: sticky;
     top: 0;
@@ -81,4 +81,3 @@ details summary {
 details div {
     margin-left: 20px;
 }
-
