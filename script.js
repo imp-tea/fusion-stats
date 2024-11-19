@@ -12,13 +12,13 @@ const DEFAULT_COLUMNS = [
 ];
 
 const TYPE_OPTIONS = [
-    '---', 'Any', 'Normal', 'Grass', 'Fire', 'Water', 'Bug', 'Poison', 
+    'Any', 'Normal', 'Grass', 'Fire', 'Water', 'Bug', 'Poison', 
     'Flying', 'Rock', 'Ground', 'Fairy', 'Fighting', 'Psychic', 'Dark', 
     'Ghost', 'Ice', 'Steel', 'Dragon', 'Electric', 'None'
 ];
 
 const NUMERIC_OPTIONS = [
-    '---', 'Is Greater Than', 'Is Less Than', 'Is Equal To'
+    'Is Greater Than', 'Is Less Than', 'Is Equal To'
 ];
 
 async function loadData() {
