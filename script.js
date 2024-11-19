@@ -37,11 +37,11 @@ async function loadData() {
     });
 
     originalPokemonData = [...pokemonData];
+    populatePokemonSelect();
+    setupFusionEvents();
     setupTable();
     setupFilterRuleEvents();
     updateTable();
-    populatePokemonSelect();
-    setupFusionEvents();
 }
 
 function setupTable() {
