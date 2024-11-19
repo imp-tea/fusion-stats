@@ -2,6 +2,8 @@ let pokemonData = [];
 let originalPokemonData = [];
 let currentSortColumn = null;
 let sortAscending = true;
+let selectedPokemon = null;
+let fusionType = null;
 
 const DEFAULT_COLUMNS = [
     'Number', 'Name', 'HP', 'Attack', 'Defense', 
@@ -38,6 +40,8 @@ async function loadData() {
     setupTable();
     setupFilterRuleEvents();
     updateTable();
+    populatePokemonSelect();
+    setupFusionEvents();
 }
 
 function setupTable() {
@@ -141,11 +145,31 @@ function updateConditionOptions(event) {
     });
 }
 
-function addRule(operator) {
+function addRule() {
     const rulesContainer = document.getElementById('filter-rules');
-    const operatorDiv = document.createElement('div');
-    operatorDiv.className = 'logical-operator';
-    operatorDiv.textContent = `-${operator}-`;
+    const ruleDiv = document.createElement('div');
+    ruleDiv.className = 'filter-rule';
+    ruleDiv.innerHTML = document.querySelector('.filter-rule').innerHTML;
+    
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete Rule';
+    deleteButton.onclick = () => {
+        ruleDiv.remove();
+        applyFilters();
+    };
+    ruleDiv.appendChild(deleteButton);
+    
+    const buttonsDiv = document.querySelector('.rule-buttons');
+    rulesContainer.insertBefore(ruleDiv, buttonsDiv);
+    
+    setupFilterRuleEvents();
+    applyFilters();
+}
+
+function addNewFilter() {
+    const rulesContainer = document.getElementById('filter-rules');
+    const separator = document.createElement('hr');
+    separator.className = 'filter-separator';
     
     const ruleDiv = document.createElement('div');
     ruleDiv.className = 'filter-rule';
@@ -154,14 +178,14 @@ function addRule(operator) {
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete Rule';
     deleteButton.onclick = () => {
-        operatorDiv.remove();
+        separator.remove();
         ruleDiv.remove();
         applyFilters();
     };
     ruleDiv.appendChild(deleteButton);
     
     const buttonsDiv = document.querySelector('.rule-buttons');
-    rulesContainer.insertBefore(operatorDiv, buttonsDiv);
+    rulesContainer.insertBefore(separator, buttonsDiv);
     rulesContainer.insertBefore(ruleDiv, buttonsDiv);
     
     setupFilterRuleEvents();
@@ -268,6 +292,140 @@ function filterByRule(data, rule) {
     return rule.action === 'exclude' 
         ? data.filter(pokemon => !filterFunction(pokemon))
         : data.filter(filterFunction);
+}
+
+// Add this function to populate the Pokemon dropdown
+function populatePokemonSelect() {
+    const select = document.getElementById('pokemon-select');
+    const sortedPokemon = [...originalPokemonData].sort((a, b) => 
+        Number(a.Number) - Number(b.Number)
+    );
+    
+    sortedPokemon.forEach(pokemon => {
+        const option = document.createElement('option');
+        option.value = pokemon.Number;
+        option.textContent = `${pokemon.Name} (#${pokemon.Number})`;
+        select.appendChild(option);
+    });
+
+    // Add search functionality
+    select.addEventListener('keyup', (e) => {
+        const searchText = e.target.value.toLowerCase();
+        Array.from(select.options).forEach(option => {
+            const text = option.textContent.toLowerCase();
+            option.style.display = text.includes(searchText) ? '' : 'none';
+        });
+    });
+}
+
+// Add fusion calculation functions
+function calculateHeadStat(headStat, bodyStat) {
+    return Math.floor((2 * Number(headStat) + Number(bodyStat)) / 3);
+}
+
+function calculateBodyStat(bodyStat, headStat) {
+    return Math.floor((2 * Number(bodyStat) + Number(headStat)) / 3);
+}
+
+function calculateTypes(headPokemon, bodyPokemon) {
+    let type1 = headPokemon['Type 1'];
+    if (headPokemon['Type 1'] === 'NORMAL' && headPokemon['Type 2'] === 'FLYING') {
+        type1 = headPokemon['Type 2'];
+    }
+
+    let type2 = bodyPokemon['Type 2'];
+    if (bodyPokemon['Type 2'] === type1 || !bodyPokemon['Type 2']) {
+        type2 = bodyPokemon['Type 1'];
+    }
+
+    return [type1, type2];
+}
+
+// Add fusion application function
+function applyFusion() {
+    if (!selectedPokemon || !fusionType) {
+        pokemonData = [...originalPokemonData];
+        updateTable();
+        return;
+    }
+
+    const fusionPokemon = originalPokemonData.find(p => p.Number === selectedPokemon);
+    
+    pokemonData = originalPokemonData.map(pokemon => {
+        const fusedPokemon = {...pokemon};
+        
+        if (fusionType === 'head') {
+            // Fusion with selected Pokemon as head
+            fusedPokemon.Attack = calculateHeadStat(fusionPokemon.Attack, pokemon.Attack);
+            fusedPokemon.Defense = calculateHeadStat(fusionPokemon.Defense, pokemon.Defense);
+            fusedPokemon.Speed = calculateHeadStat(fusionPokemon.Speed, pokemon.Speed);
+            fusedPokemon.HP = calculateBodyStat(pokemon.HP, fusionPokemon.HP);
+            fusedPokemon['Special Attack'] = calculateBodyStat(pokemon['Special Attack'], fusionPokemon['Special Attack']);
+            fusedPokemon['Special Defense'] = calculateBodyStat(pokemon['Special Defense'], fusionPokemon['Special Defense']);
+            
+            const [type1, type2] = calculateTypes(fusionPokemon, pokemon);
+            fusedPokemon['Type 1'] = type1;
+            fusedPokemon['Type 2'] = type2;
+            
+            fusedPokemon.Number = `${fusionPokemon.Number}.${pokemon.Number}`;
+        } else {
+            // Fusion with selected Pokemon as body
+            fusedPokemon.Attack = calculateHeadStat(pokemon.Attack, fusionPokemon.Attack);
+            fusedPokemon.Defense = calculateHeadStat(pokemon.Defense, fusionPokemon.Defense);
+            fusedPokemon.Speed = calculateHeadStat(pokemon.Speed, fusionPokemon.Speed);
+            fusedPokemon.HP = calculateBodyStat(fusionPokemon.HP, pokemon.HP);
+            fusedPokemon['Special Attack'] = calculateBodyStat(fusionPokemon['Special Attack'], pokemon['Special Attack']);
+            fusedPokemon['Special Defense'] = calculateBodyStat(fusionPokemon['Special Defense'], pokemon['Special Defense']);
+            
+            const [type1, type2] = calculateTypes(pokemon, fusionPokemon);
+            fusedPokemon['Type 1'] = type1;
+            fusedPokemon['Type 2'] = type2;
+            
+            fusedPokemon.Number = `${pokemon.Number}.${fusionPokemon.Number}`;
+        }
+
+        // Recalculate totals
+        fusedPokemon.BST = Number(fusedPokemon.HP) + 
+            Number(fusedPokemon.Attack) + 
+            Number(fusedPokemon.Defense) + 
+            Number(fusedPokemon['Special Attack']) + 
+            Number(fusedPokemon['Special Defense']) + 
+            Number(fusedPokemon.Speed);
+
+        fusedPokemon['Head Stat Total'] = Number(fusedPokemon.Attack) + 
+            Number(fusedPokemon.Defense) + 
+            Number(fusedPokemon.Speed);
+
+        fusedPokemon['Body Stat Total'] = Number(fusedPokemon.HP) + 
+            Number(fusedPokemon['Special Attack']) + 
+            Number(fusedPokemon['Special Defense']);
+
+        return fusedPokemon;
+    });
+
+    updateTable();
+}
+
+// Add event listeners for fusion selectors
+function setupFusionEvents() {
+    document.getElementById('pokemon-select').addEventListener('change', (e) => {
+        selectedPokemon = e.target.value;
+        applyFusion();
+    });
+
+    document.getElementById('fusion-type').addEventListener('change', (e) => {
+        fusionType = e.target.value;
+        applyFusion();
+    });
+}
+
+function clearFusion() {
+    document.getElementById('pokemon-select').value = '';
+    document.getElementById('fusion-type').value = '';
+    selectedPokemon = null;
+    fusionType = null;
+    pokemonData = [...originalPokemonData];
+    updateTable();
 }
 
 document.addEventListener('DOMContentLoaded', loadData);
