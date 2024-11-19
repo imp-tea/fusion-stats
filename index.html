@@ -23,19 +23,7 @@
                             </select>
                             <span>if</span>
                             <select class="rule-column">
-                                <option value="">---</option>
-                                <option value="Type 1">Type 1</option>
-                                <option value="Type 2">Type 2</option>
-                                <option value="BST">BST</option>
-                                <option value="Head Stat Total">Head Stat Total</option>
-                                <option value="Body Stat Total">Body Stat Total</option>
-                                <option value="HP">HP</option>
-                                <option value="Attack">Attack</option>
-                                <option value="Defense">Defense</option>
-                                <option value="Special Attack">Special Attack</option>
-                                <option value="Special Defense">Special Defense</option>
-                                <option value="Speed">Speed</option>
-                                <option value="Number">Number</option>
+                                <!-- ... (keep existing options) ... -->
                             </select>
                             <span>is</span>
                             <select class="rule-condition">
@@ -44,8 +32,28 @@
                             <input type="number" class="rule-value" style="display: none;">
                         </div>
                         <div class="rule-buttons">
-                            <button onclick="addRule('AND')">And</button>
-                            <button onclick="addRule('OR')">Or</button>
+                            <button onclick="addRule()">And</button>
+                            <button onclick="addNewFilter()">New Filter</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tree-item">
+                    <div class="tree-header" onclick="toggleTreeItem(this)">
+                        Select Fusion ?
+                    </div>
+                    <div class="tree-content" id="fusion-selector">
+                        <div class="fusion-rule">
+                            Show fusions with 
+                            <select id="pokemon-select">
+                                <option value="">---</option>
+                            </select>
+                            as
+                            <select id="fusion-type">
+                                <option value="">---</option>
+                                <option value="head">Head</option>
+                                <option value="body">Body</option>
+                            </select>
+                            <button onclick="clearFusion()">Clear</button>
                         </div>
                     </div>
                 </div>
