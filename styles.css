@@ -1,180 +1,103 @@
-/* styles.css */
-:root {
-    --darker: #1d1626;
-    --background: #2f243e;
-    --lighter: #3c2b52;
-    --text: #efedf1;
-    --text-hover: #fefdff;
-    --text-secondary: #cac3d3;
-    --link: #ffd700;
-    --link-hover: #ffe96d;
-}
+/* Add these styles to your styles.css */
 
-body {
+/* Dropdown styling */
+select {
     background-color: var(--darker);
     color: var(--text);
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-}
-
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.filters {
-    background-color: var(--background);
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.tree-view {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.tree-item {
     border: 1px solid var(--lighter);
+    padding: 8px;
     border-radius: 4px;
-}
-
-.tree-header {
-    padding: 10px;
-    background-color: var(--lighter);
     cursor: pointer;
-    user-select: none;
+    margin: 0 5px;
 }
 
-.tree-header:hover {
+select:hover {
+    background-color: var(--lighter);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--link);
+}
+
+/* Button styling */
+button {
+    background-color: var(--lighter);
+    color: var(--text);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
     background-color: var(--background);
     color: var(--text-hover);
 }
 
-.tree-content {
-    padding: 15px;
-    display: none;
+button:active {
+    transform: scale(0.98);
 }
 
-.tree-content.active {
-    display: block;
+/* Number input styling */
+input[type="number"] {
+    background-color: var(--darker);
+    color: var(--text);
+    border: 1px solid var(--lighter);
+    padding: 8px;
+    border-radius: 4px;
+    margin: 0 5px;
 }
 
+input[type="number"]:focus {
+    outline: none;
+    border-color: var(--link);
+}
+
+/* Filter rule styling */
+.filter-rule {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.logical-operator {
+    color: var(--text-secondary);
+    margin: 10px 0;
+    text-align: center;
+}
+
+.rule-buttons {
+    margin-top: 15px;
+}
+
+/* Table corner rounding */
 .table-container {
-    overflow-x: auto;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: var(--background);
+    border-radius: 8px;
 }
 
-th, td {
-    padding: 12px;
-    text-align: left;
-    border: 1px solid var(--lighter);
+/* Optional: If you want to round specific corners of cells */
+thead tr:first-child th:first-child {
+    border-top-left-radius: 8px;
 }
 
-th {
-    background-color: var(--lighter);
-    cursor: pointer;
-    user-select: none;
-    color: var(--text);
+thead tr:first-child th:last-child {
+    border-top-right-radius: 8px;
 }
 
-th:hover {
-    background-color: var(--background);
-    color: var(--text-hover);
+tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 8px;
 }
 
-tr:nth-child(even) {
-    background-color: var(--darker);
-}
-
-a {
-    color: var(--link);
-    text-decoration: none;
-}
-
-a:hover {
-    color: var(--link-hover);
-    text-decoration: underline;
-}
-
-.checkbox-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.checkbox-container label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: var(--text-secondary);
-}
-
-.slider-container {
-    margin: 10px 0;
-}
-
-.slider-container label {
-    display: block;
-    margin-bottom: 5px;
-    color: var(--text-secondary);
-}
-
-input[type="range"] {
-    width: 100%;
-    margin: 10px 0;
-}
-
-.range-values {
-    display: flex;
-    justify-content: space-between;
-}
-
-.toggle-container {
-    margin: 10px 0;
-}
-
-.toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    color: var(--text-secondary);
-}
-
-.slider {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-    background-color: var(--darker);
-    border-radius: 20px;
-    transition: 0.4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: var(--text);
-    border-radius: 50%;
-    transition: 0.4s;
-}
-
-input:checked + .slider {
-    background-color: var(--link);
-}
-
-input:checked + .slider:before {
-    transform: translateX(20px);
+tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 8px;
 }
