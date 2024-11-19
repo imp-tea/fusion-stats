@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <div class="filters">
-            <div class="tree-view">
+           <div class="tree-view">
                 <div class="tree-item">
                     <div class="tree-header" onclick="toggleTreeItem(this)">
                         Create Filters ?
@@ -23,7 +23,7 @@
                             </select>
                             <span>if</span>
                             <select class="rule-column">
-                                <!-- ... (keep existing options) ... -->
+                                <!-- existing options -->
                             </select>
                             <span>is</span>
                             <select class="rule-condition">
@@ -41,8 +41,8 @@
                     <div class="tree-header" onclick="toggleTreeItem(this)">
                         Select Fusion ?
                     </div>
-                    <div class="tree-content" id="fusion-selector">
-                        <div class="fusion-rule">
+                    <div class="tree-content">
+                        <div class="fusion-selector">
                             Show fusions with 
                             <select id="pokemon-select">
                                 <option value="">---</option>
@@ -59,7 +59,6 @@
                 </div>
             </div>
         </div>
-
         <div class="table-container">
             <table id="pokemon-table">
                 <thead></thead>
