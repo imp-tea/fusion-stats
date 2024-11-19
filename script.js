@@ -112,6 +112,15 @@ function setupFilterRuleEvents() {
         const conditionSelect = rule.querySelector('.rule-condition');
         const valueInput = rule.querySelector('.rule-value');
 
+        // Add this code to populate the column dropdown
+        columnSelect.innerHTML = '<option value="">---</option>';
+        DEFAULT_COLUMNS.forEach(column => {
+            const option = document.createElement('option');
+            option.value = column;
+            option.textContent = column;
+            columnSelect.appendChild(option);
+        });
+
         // Set up initial condition options based on current column selection
         updateConditionOptions(columnSelect, conditionSelect, valueInput);
 
