@@ -280,18 +280,16 @@ tbody tr:last-child td:last-child {
     border-bottom-right-radius: 8px;
 }
 
-/* Add to your existing CSS */
-.fusion-rule {
-    margin: 10px 0;
+.filter-group {
+    border-bottom: 1px solid var(--lighter);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.fusion-selector {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-hr.filter-separator {
-    border: none;
-    border-top: 1px solid var(--lighter);
-    margin: 15px 0;
 }
 
 #pokemon-select {
