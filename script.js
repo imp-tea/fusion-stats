@@ -110,28 +110,29 @@ function setupFilterRuleEvents() {
     document.querySelectorAll('.filter-rule').forEach(rule => {
         const columnSelect = rule.querySelector('.rule-column');
         const conditionSelect = rule.querySelector('.rule-condition');
-        
-        // Initialize condition options based on current column selection
-        updateConditionOptions({ target: columnSelect });
-        
-        // Add change listeners
-        columnSelect.addEventListener('change', updateConditionOptions);
-        
-        rule.querySelectorAll('select, input').forEach(element => {
-            element.addEventListener('change', () => {
-                applyFilters();
-            });
+        const valueInput = rule.querySelector('.rule-value');
+
+        // Set up initial condition options based on current column selection
+        updateConditionOptions(columnSelect, conditionSelect, valueInput);
+
+        // Add change event listeners
+        columnSelect.addEventListener('change', () => {
+            updateConditionOptions(columnSelect, conditionSelect, valueInput);
+            applyFilters();
         });
+
+        conditionSelect.addEventListener('change', () => {
+            const showNumericInput = ['Is Greater Than', 'Is Less Than', 'Is Equal To'].includes(conditionSelect.value);
+            valueInput.style.display = showNumericInput ? 'inline' : 'none';
+            applyFilters();
+        });
+
+        valueInput.addEventListener('change', applyFilters);
     });
 }
 
-function updateConditionOptions(event) {
-    const columnSelect = event.target;
-    const ruleDiv = columnSelect.closest('.filter-rule');
-    const conditionSelect = ruleDiv.querySelector('.rule-condition');
-    const valueInput = ruleDiv.querySelector('.rule-value');
-    
-    conditionSelect.innerHTML = '';
+function updateConditionOptions(columnSelect, conditionSelect, valueInput) {
+    conditionSelect.innerHTML = '<option value="">---</option>';
     
     const options = ['Type 1', 'Type 2'].includes(columnSelect.value) 
         ? TYPE_OPTIONS 
@@ -144,10 +145,9 @@ function updateConditionOptions(event) {
         conditionSelect.appendChild(optElement);
     });
 
-    conditionSelect.addEventListener('change', () => {
-        const showNumericInput = ['Is Greater Than', 'Is Less Than', 'Is Equal To'].includes(conditionSelect.value);
-        valueInput.style.display = showNumericInput ? 'inline' : 'none';
-    });
+    // Reset and hide value input
+    valueInput.value = '';
+    valueInput.style.display = 'none';
 }
 
 function addRule() {
