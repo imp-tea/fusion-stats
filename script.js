@@ -7,7 +7,7 @@ let sortAscending = true;
 async function loadData() {
     const response = await fetch('stats.csv');
     const text = await response.text();
-    const rows = text.split('\n');
+    const rows = text.trim().split('\n');
     const headers = rows[0].split(',');
 
     pokemonData = rows.slice(1).map(row => {
@@ -36,6 +36,7 @@ function setupTable() {
         th.onclick = () => sortTable(key);
         headerRow.appendChild(th);
     });
+    thead.innerHTML = ''; // Clear existing headers
     thead.appendChild(headerRow);
 
     // Populate table
@@ -136,8 +137,8 @@ function setupColumnFilters() {
 
     // Set default displayed columns
     const defaultDisplayedColumns = [
-        'Number', 'Name', 'HP', 'Attack', 'Defense', 'Special Attack',
-        'Special Defense', 'Speed', 'Type 1', 'Type 2', 'BST',
+        'Number', 'Name', 'HP', 'Attack', 'Defence', 'Special Attack',
+        'Special Defence', 'Speed', 'Type 1', 'Type 2', 'BST',
         'Head Stat Total', 'Body Stat Total'
     ];
 
@@ -167,6 +168,11 @@ function updateColumnVisibility() {
         }
     });
 
+    // Update "Select All" checkbox based on whether all checkboxes are checked
+    const selectAllCheckbox = document.querySelector('#column-filters input[data-column="select-all"]');
+    const allChecked = [...checkboxes].filter(cb => cb.dataset.column !== 'select-all').every(cb => cb.checked);
+    selectAllCheckbox.checked = allChecked;
+
     // Store shown columns in localStorage
     localStorage.setItem('shownColumns', JSON.stringify([...shownColumns]));
     applyColumnVisibility();
@@ -180,13 +186,16 @@ function applyColumnVisibility() {
     const checkboxes = document.querySelectorAll('#column-filters input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
         if (checkbox.dataset.column === 'select-all') {
-            // Update "Select All" checkbox based on whether all checkboxes are checked
-            const allChecked = [...checkboxes].filter(cb => cb.dataset.column !== 'select-all').every(cb => cb.checked);
-            checkbox.checked = allChecked;
+            // Do nothing
         } else {
             checkbox.checked = shownColumns.has(checkbox.dataset.column);
         }
     });
+
+    // Update "Select All" checkbox based on whether all checkboxes are checked
+    const selectAllCheckbox = document.querySelector('#column-filters input[data-column="select-all"]');
+    const allChecked = [...checkboxes].filter(cb => cb.dataset.column !== 'select-all').every(cb => cb.checked);
+    selectAllCheckbox.checked = allChecked;
 
     // Show/hide columns
     Object.keys(pokemonData[0]).forEach((column, index) => {
@@ -245,7 +254,7 @@ function setupIncludeTypeFilters() {
         const label1 = document.createElement('label');
         const checkbox1 = document.createElement('input');
         checkbox1.type = 'checkbox';
-        checkbox1.dataset.type = type.toUpperCase();
+        checkbox1.dataset.type = type;
         checkbox1.dataset.category = 'include-type1';
         checkbox1.addEventListener('change', updateTable);
         label1.appendChild(checkbox1);
@@ -257,7 +266,7 @@ function setupIncludeTypeFilters() {
         const label2 = document.createElement('label');
         const checkbox2 = document.createElement('input');
         checkbox2.type = 'checkbox';
-        checkbox2.dataset.type = type === 'None' ? '' : type.toUpperCase();
+        checkbox2.dataset.type = type === 'None' ? '' : type;
         checkbox2.dataset.category = 'include-type2';
         checkbox2.addEventListener('change', updateTable);
         label2.appendChild(checkbox2);
@@ -314,7 +323,7 @@ function setupTypeFilters() {
         const label1 = document.createElement('label');
         const checkbox1 = document.createElement('input');
         checkbox1.type = 'checkbox';
-        checkbox1.dataset.type = type.toUpperCase();
+        checkbox1.dataset.type = type;
         checkbox1.dataset.category = 'type1';
         checkbox1.addEventListener('change', updateTable);
         label1.appendChild(checkbox1);
@@ -326,7 +335,7 @@ function setupTypeFilters() {
         const label2 = document.createElement('label');
         const checkbox2 = document.createElement('input');
         checkbox2.type = 'checkbox';
-        checkbox2.dataset.type = type === 'None' ? '' : type.toUpperCase();
+        checkbox2.dataset.type = type === 'None' ? '' : type;
         checkbox2.dataset.category = 'type2';
         checkbox2.addEventListener('change', updateTable);
         label2.appendChild(checkbox2);
@@ -340,9 +349,9 @@ function setupStatRanges() {
     const stats = [
         { name: 'HP', min: 1, max: 255, step: 1 },
         { name: 'Attack', min: 1, max: 255, step: 1 },
-        { name: 'Defense', min: 1, max: 255, step: 1 },
+        { name: 'Defence', min: 1, max: 255, step: 1 },
         { name: 'Special Attack', min: 1, max: 255, step: 1 },
-        { name: 'Special Defense', min: 1, max: 255, step: 1 },
+        { name: 'Special Defence', min: 1, max: 255, step: 1 },
         { name: 'Speed', min: 1, max: 255, step: 1 },
         { name: 'BST', min: 1, max: 800, step: 1 },
         { name: 'Head Stat Total', min: 1, max: 800, step: 1 },
