@@ -245,7 +245,8 @@ function filterByRule(data, rule) {
             } else if (rule.condition === 'None') {
                 return !value || value === '';
             } else {
-                return value === rule.condition;
+                // Case-insensitive comparison for types
+                return value.toUpperCase() === rule.condition.toUpperCase();
             }
         } else {
             const numValue = Number(value);
