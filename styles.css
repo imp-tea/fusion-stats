@@ -1,5 +1,183 @@
-/* Add these styles to your styles.css */
+/* styles.css */
+:root {
+    --darker: #1d1626;
+    --background: #2f243e;
+    --lighter: #3c2b52;
+    --text: #efedf1;
+    --text-hover: #fefdff;
+    --text-secondary: #cac3d3;
+    --link: #ffd700;
+    --link-hover: #ffe96d;
+}
 
+body {
+    background-color: var(--darker);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.filters {
+    background-color: var(--background);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.tree-view {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tree-item {
+    border: 1px solid var(--lighter);
+    border-radius: 4px;
+}
+
+.tree-header {
+    padding: 10px;
+    background-color: var(--lighter);
+    cursor: pointer;
+    user-select: none;
+}
+
+.tree-header:hover {
+    background-color: var(--background);
+    color: var(--text-hover);
+}
+
+.tree-content {
+    padding: 15px;
+    display: none;
+}
+
+.tree-content.active {
+    display: block;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--background);
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid var(--lighter);
+}
+
+th {
+    background-color: var(--lighter);
+    cursor: pointer;
+    user-select: none;
+    color: var(--text);
+}
+
+th:hover {
+    background-color: var(--background);
+    color: var(--text-hover);
+}
+
+tr:nth-child(even) {
+    background-color: var(--darker);
+}
+
+a {
+    color: var(--link);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
+}
+
+.checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.checkbox-container label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-secondary);
+}
+
+.slider-container {
+    margin: 10px 0;
+}
+
+.slider-container label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+}
+
+input[type="range"] {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.range-values {
+    display: flex;
+    justify-content: space-between;
+}
+
+.toggle-container {
+    margin: 10px 0;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.slider {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    background-color: var(--darker);
+    border-radius: 20px;
+    transition: 0.4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text);
+    border-radius: 50%;
+    transition: 0.4s;
+}
+
+input:checked + .slider {
+    background-color: var(--link);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
 /* Dropdown styling */
 select {
     background-color: var(--darker);
