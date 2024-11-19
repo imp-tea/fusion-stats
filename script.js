@@ -108,15 +108,20 @@ function sortTable(column) {
 
 function setupFilterRuleEvents() {
     document.querySelectorAll('.filter-rule').forEach(rule => {
+        const columnSelect = rule.querySelector('.rule-column');
+        const conditionSelect = rule.querySelector('.rule-condition');
+        
+        // Initialize condition options based on current column selection
+        updateConditionOptions({ target: columnSelect });
+        
+        // Add change listeners
+        columnSelect.addEventListener('change', updateConditionOptions);
+        
         rule.querySelectorAll('select, input').forEach(element => {
             element.addEventListener('change', () => {
                 applyFilters();
             });
         });
-    });
-
-    document.querySelectorAll('.rule-column').forEach(select => {
-        select.addEventListener('change', updateConditionOptions);
     });
 }
 
