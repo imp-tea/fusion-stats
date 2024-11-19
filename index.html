@@ -23,7 +23,19 @@
                             </select>
                             <span>if</span>
                             <select class="rule-column">
-                                <!-- ... (keep existing options) ... -->
+                                <option value="">---</option>
+                                <option value="Type 1">Type 1</option>
+                                <option value="Type 2">Type 2</option>
+                                <option value="BST">BST</option>
+                                <option value="Head Stat Total">Head Stat Total</option>
+                                <option value="Body Stat Total">Body Stat Total</option>
+                                <option value="HP">HP</option>
+                                <option value="Attack">Attack</option>
+                                <option value="Defense">Defense</option>
+                                <option value="Special Attack">Special Attack</option>
+                                <option value="Special Defense">Special Defense</option>
+                                <option value="Speed">Speed</option>
+                                <option value="Number">Number</option>
                             </select>
                             <span>is</span>
                             <select class="rule-condition">
@@ -32,8 +44,7 @@
                             <input type="number" class="rule-value" style="display: none;">
                         </div>
                         <div class="rule-buttons">
-                            <button onclick="addRule()">And</button>
-                            <button onclick="addNewFilter()">New Filter</button>
+                            <button onclick="addRule()">Add Rule</button>
                         </div>
                     </div>
                 </div>
@@ -41,8 +52,8 @@
                     <div class="tree-header" onclick="toggleTreeItem(this)">
                         Select Fusion ?
                     </div>
-                    <div class="tree-content" id="fusion-selector">
-                        <div class="fusion-rule">
+                    <div class="tree-content">
+                        <div class="fusion-selector">
                             Show fusions with 
                             <select id="pokemon-select">
                                 <option value="">---</option>
