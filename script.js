@@ -274,7 +274,7 @@ function setupFusionSelector() {
         .forEach(pokemon => {
             const option = document.createElement('option');
             option.value = pokemon.Number;
-            option.textContent = `${pokemon.Number} - ${pokemon.Name}`;
+            option.textContent = `${pokemon.Name}`;
             pokemonSelect.appendChild(option);
         });
 
