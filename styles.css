@@ -1,7 +1,18 @@
 /* styles.css */
+:root {
+    --darker: #1d1626;
+    --background: #2f243e;
+    --lighter: #3c2b52;
+    --text: #efedf1;
+    --text-hover: #fefdff;
+    --text-secondary: #cac3d3;
+    --link: #ffd700;
+    --link-hover: #ffe96d;
+}
+
 body {
-    background-color: #4a148c;
-    color: white;
+    background-color: var(--darker);
+    color: var(--text);
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
@@ -13,7 +24,7 @@ body {
 }
 
 .filters {
-    background-color: #6a1b9a;
+    background-color: var(--background);
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
@@ -26,19 +37,20 @@ body {
 }
 
 .tree-item {
-    border: 1px solid #9c27b0;
+    border: 1px solid var(--lighter);
     border-radius: 4px;
 }
 
 .tree-header {
     padding: 10px;
-    background-color: #7b1fa2;
+    background-color: var(--lighter);
     cursor: pointer;
     user-select: none;
 }
 
 .tree-header:hover {
-    background-color: #8e24aa;
+    background-color: var(--background);
+    color: var(--text-hover);
 }
 
 .tree-content {
@@ -57,35 +69,38 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #6a1b9a;
+    background-color: var(--background);
 }
 
 th, td {
     padding: 12px;
     text-align: left;
-    border: 1px solid #9c27b0;
+    border: 1px solid var(--lighter);
 }
 
 th {
-    background-color: #7b1fa2;
+    background-color: var(--lighter);
     cursor: pointer;
     user-select: none;
+    color: var(--text);
 }
 
 th:hover {
-    background-color: #8e24aa;
+    background-color: var(--background);
+    color: var(--text-hover);
 }
 
 tr:nth-child(even) {
-    background-color: #5e1687;
+    background-color: var(--darker);
 }
 
 a {
-    color: #ffeb3b;
+    color: var(--link);
     text-decoration: none;
 }
 
 a:hover {
+    color: var(--link-hover);
     text-decoration: underline;
 }
 
@@ -99,6 +114,7 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 5px;
+    color: var(--text-secondary);
 }
 
 .slider-container {
@@ -108,6 +124,7 @@ a:hover {
 .slider-container label {
     display: block;
     margin-bottom: 5px;
+    color: var(--text-secondary);
 }
 
 input[type="range"] {
@@ -129,6 +146,7 @@ input[type="range"] {
     align-items: center;
     gap: 10px;
     cursor: pointer;
+    color: var(--text-secondary);
 }
 
 .slider {
@@ -136,7 +154,7 @@ input[type="range"] {
     display: inline-block;
     width: 40px;
     height: 20px;
-    background-color: #ccc;
+    background-color: var(--darker);
     border-radius: 20px;
     transition: 0.4s;
 }
@@ -148,13 +166,13 @@ input[type="range"] {
     width: 16px;
     left: 2px;
     bottom: 2px;
-    background-color: white;
+    background-color: var(--text);
     border-radius: 50%;
     transition: 0.4s;
 }
 
 input:checked + .slider {
-    background-color: #ffeb3b;
+    background-color: var(--link);
 }
 
 input:checked + .slider:before {
