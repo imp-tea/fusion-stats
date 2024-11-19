@@ -1,4 +1,5 @@
 let pokemonData = [];
+let originalPokemonData = [];
 let currentSortColumn = null;
 let sortAscending = true;
 
@@ -33,6 +34,7 @@ async function loadData() {
         return obj;
     });
 
+    originalPokemonData = [...pokemonData];
     setupTable();
     setupFilterRuleEvents();
     updateTable();
@@ -101,6 +103,14 @@ function sortTable(column) {
 }
 
 function setupFilterRuleEvents() {
+    document.querySelectorAll('.filter-rule').forEach(rule => {
+        rule.querySelectorAll('select, input').forEach(element => {
+            element.addEventListener('change', () => {
+                applyFilters();
+            });
+        });
+    });
+
     document.querySelectorAll('.rule-column').forEach(select => {
         select.addEventListener('change', updateConditionOptions);
     });
@@ -125,7 +135,6 @@ function updateConditionOptions(event) {
         conditionSelect.appendChild(optElement);
     });
 
-    // Add change event listener to condition select
     conditionSelect.addEventListener('change', () => {
         const showNumericInput = ['Is Greater Than', 'Is Less Than', 'Is Equal To'].includes(conditionSelect.value);
         valueInput.style.display = showNumericInput ? 'inline' : 'none';
@@ -142,27 +151,122 @@ function addRule(operator) {
     ruleDiv.className = 'filter-rule';
     ruleDiv.innerHTML = document.querySelector('.filter-rule').innerHTML;
     
-    // Add delete button for new rules
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete Rule';
     deleteButton.onclick = () => {
         operatorDiv.remove();
         ruleDiv.remove();
+        applyFilters();
     };
     ruleDiv.appendChild(deleteButton);
     
-    // Insert before the buttons
     const buttonsDiv = document.querySelector('.rule-buttons');
     rulesContainer.insertBefore(operatorDiv, buttonsDiv);
     rulesContainer.insertBefore(ruleDiv, buttonsDiv);
     
-    // Setup events for the new rule
     setupFilterRuleEvents();
+    applyFilters();
 }
 
 function toggleTreeItem(header) {
     const content = header.nextElementSibling;
     content.classList.toggle('active');
+}
+
+function applyFilters() {
+    const rules = getAllFilterRules();
+    if (rules.length === 0) {
+        pokemonData = [...originalPokemonData];
+        updateTable();
+        return;
+    }
+
+    let filteredData = [...originalPokemonData];
+    let currentGroup = [];
+    let currentOperator = 'AND';
+
+    rules.forEach((rule, index) => {
+        if (rule.type === 'operator') {
+            currentOperator = rule.value;
+        } else {
+            const ruleResult = filterByRule(filteredData, rule);
+            
+            if (currentGroup.length === 0) {
+                currentGroup = ruleResult;
+            } else {
+                if (currentOperator === 'AND') {
+                    currentGroup = currentGroup.filter(pokemon => 
+                        ruleResult.includes(pokemon));
+                } else if (currentOperator === 'OR') {
+                    currentGroup = [...new Set([...currentGroup, ...ruleResult])];
+                }
+            }
+        }
+    });
+
+    pokemonData = currentGroup;
+    updateTable();
+}
+
+function getAllFilterRules() {
+    const rulesContainer = document.getElementById('filter-rules');
+    const rules = [];
+    
+    rulesContainer.childNodes.forEach(node => {
+        if (node.className === 'filter-rule') {
+            const rule = {
+                action: node.querySelector('.rule-type').value,
+                column: node.querySelector('.rule-column').value,
+                condition: node.querySelector('.rule-condition').value,
+                value: node.querySelector('.rule-value').value,
+                type: 'rule'
+            };
+            if (rule.action && rule.column && rule.condition) {
+                rules.push(rule);
+            }
+        } else if (node.className === 'logical-operator') {
+            rules.push({
+                type: 'operator',
+                value: node.textContent.replace(/-/g, '').trim()
+            });
+        }
+    });
+    
+    return rules;
+}
+
+function filterByRule(data, rule) {
+    const filterFunction = pokemon => {
+        const value = pokemon[rule.column];
+        
+        if (['Type 1', 'Type 2'].includes(rule.column)) {
+            if (rule.condition === 'Any') {
+                return true;
+            } else if (rule.condition === 'None') {
+                return !value || value === '';
+            } else {
+                return value === rule.condition;
+            }
+        } else {
+            const numValue = Number(value);
+            const ruleValue = Number(rule.value);
+            
+            switch (rule.condition) {
+                case 'Is Greater Than':
+                    return numValue > ruleValue;
+                case 'Is Less Than':
+                    return numValue < ruleValue;
+                case 'Is Equal To':
+                    return numValue === ruleValue;
+                default:
+                    return true;
+            }
+        }
+    };
+
+    return rule.action === 'exclude' 
+        ? data.filter(pokemon => !filterFunction(pokemon))
+        : data.filter(filterFunction);
 }
 
 document.addEventListener('DOMContentLoaded', loadData);
