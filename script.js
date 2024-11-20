@@ -2,6 +2,7 @@ let pokemonData = [];
 let originalPokemonData = [];
 let currentSortColumn = null;
 let sortAscending = true;
+let hiddenColumns = new Set();
 
 const DEFAULT_COLUMNS = [
     'Number', 'Name', 'HP', 'Attack', 'Defense', 
@@ -77,6 +78,7 @@ function updateTable() {
         });
         tbody.appendChild(row);
     });
+    applyColumnVisibility();
 }
 
 function sortTable(column) {
@@ -518,6 +520,10 @@ function setupColumnToggles() {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.id = `toggle-${column.replace(/\s+/g, '-').toLowerCase()}`;
+        
+        // Add this line to maintain checkbox state
+        checkbox.checked = hiddenColumns.has(column);
+        
         checkbox.addEventListener('change', () => toggleColumn(column, checkbox.checked));
 
         const label = document.createElement('label');
@@ -531,19 +537,25 @@ function setupColumnToggles() {
 }
 
 function toggleColumn(columnName, hide) {
+    if (hide) {
+        hiddenColumns.add(columnName);
+    } else {
+        hiddenColumns.delete(columnName);
+    }
+    applyColumnVisibility();
+}
+
+function applyColumnVisibility() {
     const table = document.getElementById('pokemon-table');
-    const headerIndex = Array.from(table.querySelectorAll('thead th'))
-        .findIndex(th => th.textContent === columnName);
     
-    if (headerIndex === -1) return;
-
-    // Toggle header
-    table.querySelectorAll(`thead th:nth-child(${headerIndex + 1})`)
-        .forEach(th => th.style.display = hide ? 'none' : '');
-
-    // Toggle cells
-    table.querySelectorAll(`tbody td:nth-child(${headerIndex + 1})`)
-        .forEach(td => td.style.display = hide ? 'none' : '');
+    DEFAULT_COLUMNS.forEach((columnName, index) => {
+        const hide = hiddenColumns.has(columnName);
+        const headerCells = table.querySelectorAll(`thead th:nth-child(${index + 1})`);
+        const bodyCells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+        
+        headerCells.forEach(cell => cell.style.display = hide ? 'none' : '');
+        bodyCells.forEach(cell => cell.style.display = hide ? 'none' : '');
+    });
 }
 
 document.addEventListener('DOMContentLoaded', loadData);
