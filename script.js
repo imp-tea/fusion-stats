@@ -256,7 +256,14 @@ function applyFilters() {
         pokemonData = combinedData;
     }
 
-    applyFusion();
+    // Apply fusion after filtering
+    const input = document.getElementById('pokemon-select');
+    const fusionType = document.getElementById('fusion-type');
+    if (input.dataset.number && fusionType.value) {
+        applyFusion();
+    } else {
+        updateTable();
+    }
 }
 
 function getAllFilterRules() {
@@ -451,15 +458,44 @@ function applyFusion() {
     const input = document.getElementById('pokemon-select');
     const fusionType = document.getElementById('fusion-type');
 
+    // Start with original data
+    let workingData = [...originalPokemonData];
+
+    // Apply filters first
+    const filters = getAllFilterRules();
+    if (filters.length > 0) {
+        const filteredDataSets = filters.map(rules => {
+            let filteredData = [...workingData];
+            rules.forEach(rule => {
+                filteredData = filterByRule(filteredData, rule);
+            });
+            return filteredData;
+        });
+
+        let combinedData = [];
+        const seenNumbers = new Set();
+
+        filteredDataSets.forEach(dataSet => {
+            dataSet.forEach(pokemon => {
+                if (!seenNumbers.has(pokemon.Number)) {
+                    combinedData.push(pokemon);
+                    seenNumbers.add(pokemon.Number);
+                }
+            });
+        });
+
+        workingData = combinedData;
+    }
+
+    // Then apply fusion if selected
     if (input.dataset.number && fusionType.value) {
         const selectedPokemon = originalPokemonData.find(p => p.Number === input.dataset.number);
-        const currentData = [...pokemonData]; // Store current filtered data
-        
-        pokemonData = currentData.map(pokemon => 
+        workingData = workingData.map(pokemon => 
             calculateFusedStats(pokemon, selectedPokemon, fusionType.value)
         );
     }
 
+    pokemonData = workingData;
     updateTable();
 }
 
