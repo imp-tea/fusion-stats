@@ -413,10 +413,14 @@ function calculateFusedStats(basePokemon, fusionPokemon, fusionType) {
         result['Type 1'] = headPokemon['Type 1'];
     }
 
-    if (bodyPokemon['Type 2'] === result['Type 1']) {
+    if (bodyPokemon['Type 2'] === result['Type 1'] || bodyPokemon['Type 2'] == '') {
         result['Type 2'] = bodyPokemon['Type 1'];
     } else {
         result['Type 2'] = bodyPokemon['Type 2'];
+    }
+
+    if (result['Type 1'] === result['Type 2']) {
+         result['Type 2'] = '';
     }
 
     const headNum = isHead ? fusionPokemon.Number : basePokemon.Number;
