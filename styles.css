@@ -286,6 +286,10 @@ tbody tr:last-child td:last-child {
     margin-bottom: 15px;
 }
 
+.filter-group-header {
+    margin-bottom: 10px;
+}
+
 .fusion-selector {
     display: flex;
     align-items: center;
@@ -335,4 +339,15 @@ tbody tr:last-child td:last-child {
     border-radius: 4px;
     background-color: var(--darker);
     color: var(--text);
+}
+
+.fusion-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dropdown {
+    min-width: 200px;
+    margin-right: 20px; /* Add space after the dropdown */
 }
