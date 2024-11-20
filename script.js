@@ -38,6 +38,7 @@ async function loadData() {
     setupTable();
     setupFilterRuleEvents();
     setupFusionSelector();
+    setupColumnToggles();
     applyFilters();
 }
 
@@ -506,6 +507,43 @@ function clearFusion() {
     document.getElementById('fusion-type').value = '';
     pokemonData = [...originalPokemonData]; // Reset to original data
     applyFilters(); // Reapply filters to update table
+}
+
+function setupColumnToggles() {
+    const togglesContainer = document.querySelector('.column-toggles');
+    DEFAULT_COLUMNS.forEach(column => {
+        const toggleItem = document.createElement('div');
+        toggleItem.className = 'column-toggle-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `toggle-${column.replace(/\s+/g, '-').toLowerCase()}`;
+        checkbox.addEventListener('change', () => toggleColumn(column, checkbox.checked));
+
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = column;
+
+        toggleItem.appendChild(checkbox);
+        toggleItem.appendChild(label);
+        togglesContainer.appendChild(toggleItem);
+    });
+}
+
+function toggleColumn(columnName, hide) {
+    const table = document.getElementById('pokemon-table');
+    const headerIndex = Array.from(table.querySelectorAll('thead th'))
+        .findIndex(th => th.textContent === columnName);
+    
+    if (headerIndex === -1) return;
+
+    // Toggle header
+    table.querySelectorAll(`thead th:nth-child(${headerIndex + 1})`)
+        .forEach(th => th.style.display = hide ? 'none' : '');
+
+    // Toggle cells
+    table.querySelectorAll(`tbody td:nth-child(${headerIndex + 1})`)
+        .forEach(td => td.style.display = hide ? 'none' : '');
 }
 
 document.addEventListener('DOMContentLoaded', loadData);
