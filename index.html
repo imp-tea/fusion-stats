@@ -2,38 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokemon Stats Table</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="filters">
-           <div class="tree-view">
+            <div class="tree-view">
                 <div class="tree-item">
                     <div class="tree-header" onclick="toggleTreeItem(this)">
                         Create Filters ?
                     </div>
-                    <div class="tree-content" id="filter-rules">
-                        <div class="filter-rule">
-                            <select class="rule-type">
-                                <option value="">---</option>
-                                <option value="include">Include</option>
-                                <option value="exclude">Exclude</option>
-                            </select>
-                            <span>if</span>
-                            <select class="rule-column">
-                                <!-- existing options -->
-                            </select>
-                            <span>is</span>
-                            <select class="rule-condition">
-                                <option value="">---</option>
-                            </select>
-                            <input type="number" class="rule-value" style="display: none;">
-                        </div>
-                        <div class="rule-buttons">
-                            <button onclick="addRule()">And</button>
-                            <button onclick="addNewFilter()">New Filter</button>
+                    <div class="tree-content" id="filter-section">
+                        <button onclick="addFilter()">Create New Filter</button>
+                        <div id="filter-groups">
+                            <div class="filter-group">
+                                <div class="filter-rule">
+                                    <select class="rule-type">
+                                        <option value="">---</option>
+                                        <option value="include">Include</option>
+                                        <option value="exclude">Exclude</option>
+                                    </select>
+                                    <span>if</span>
+                                    <select class="rule-column">
+                                        <option value="">---</option>
+                                        <option value="Type 1">Type 1</option>
+                                        <option value="Type 2">Type 2</option>
+                                        <option value="BST">BST</option>
+                                        <option value="Head Stat Total">Head Stat Total</option>
+                                        <option value="Body Stat Total">Body Stat Total</option>
+                                        <option value="HP">HP</option>
+                                        <option value="Attack">Attack</option>
+                                        <option value="Defense">Defense</option>
+                                        <option value="Special Attack">Special Attack</option>
+                                        <option value="Special Defense">Special Defense</option>
+                                        <option value="Speed">Speed</option>
+                                        <option value="Number">Number</option>
+                                    </select>
+                                    <span>is</span>
+                                    <select class="rule-condition">
+                                        <option value="">---</option>
+                                    </select>
+                                    <input type="number" class="rule-value" style="display: none;">
+                                </div>
+                                <div class="rule-buttons">
+                                    <button onclick="addRule(this)">Add Rule</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -44,9 +59,10 @@
                     <div class="tree-content">
                         <div class="fusion-selector">
                             Show fusions with 
-                            <select id="pokemon-select">
-                                <option value="">---</option>
-                            </select>
+                            <div class="dropdown">
+                                <input type="text" id="pokemon-select" class="input-field" placeholder="Type to search...">
+                                <div id="dropdown-menu" class="dropdown-menu"></div>
+                            </div>
                             as
                             <select id="fusion-type">
                                 <option value="">---</option>
@@ -59,6 +75,7 @@
                 </div>
             </div>
         </div>
+
         <div class="table-container">
             <table id="pokemon-table">
                 <thead></thead>
