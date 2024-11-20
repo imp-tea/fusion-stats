@@ -303,49 +303,72 @@ function filterByRule(data, rule) {
 function setupFusionSelector() {
     const input = document.getElementById('pokemon-select');
     const dropdownMenu = document.getElementById('dropdown-menu');
-
+    const fusionType = document.getElementById('fusion-type');
     const pokemonList = originalPokemonData.sort((a, b) => Number(a.Number) - Number(b.Number));
+
+    let currentSelection = null;
+
+    function selectPokemon(pokemon) {
+        input.value = pokemon.Name;
+        input.dataset.number = pokemon.Number;
+        dropdownMenu.classList.remove('show');
+        currentSelection = pokemon;
+        
+        // Only apply fusion if both pokemon and fusion type are selected
+        if (fusionType.value) {
+            pokemonData = [...originalPokemonData]; // Reset to original data
+            applyFusion(); // Apply new fusion
+        }
+    }
 
     input.addEventListener('input', () => {
         const query = input.value.toLowerCase();
         dropdownMenu.innerHTML = '';
+        
         if (query) {
             const filteredPokemon = pokemonList.filter(pokemon => 
                 pokemon.Name.toLowerCase().includes(query)
             );
+            
             filteredPokemon.forEach(pokemon => {
                 const option = document.createElement('div');
                 option.textContent = pokemon.Name;
                 option.dataset.number = pokemon.Number;
-                option.addEventListener('click', () => {
-                    input.value = pokemon.Name;
-                    input.dataset.number = pokemon.Number;
-                    dropdownMenu.classList.remove('show');
-                    clearFusion(); // Clear previous fusion
-                    applyFusion(); // Apply new fusion
+                option.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    selectPokemon(pokemon);
                 });
                 dropdownMenu.appendChild(option);
             });
+            
             dropdownMenu.classList.add('show');
         } else {
             dropdownMenu.classList.remove('show');
+            currentSelection = null;
         }
     });
 
     input.addEventListener('focus', () => {
-        if (dropdownMenu.innerHTML) {
+        if (input.value && dropdownMenu.children.length) {
             dropdownMenu.classList.add('show');
         }
     });
 
-    input.addEventListener('blur', () => {
-        // Hide dropdown after focus is lost
-        setTimeout(() => dropdownMenu.classList.remove('show'), 100);
+    // Handle clicking outside the dropdown
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.remove('show');
+        }
     });
 
-    document.getElementById('fusion-type').addEventListener('change', () => {
-        clearFusion(); // Clear previous fusion
-        applyFusion(); // Apply new fusion
+    fusionType.addEventListener('change', () => {
+        if (currentSelection && fusionType.value) {
+            pokemonData = [...originalPokemonData]; // Reset to original data
+            applyFusion(); // Apply new fusion
+        } else if (!fusionType.value) {
+            pokemonData = [...originalPokemonData]; // Reset to original data
+            updateTable();
+        }
     });
 }
 
