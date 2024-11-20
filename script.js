@@ -321,7 +321,8 @@ function setupFusionSelector() {
                     input.value = pokemon.Name;
                     input.dataset.number = pokemon.Number;
                     dropdownMenu.classList.remove('show');
-                    applyFusion();
+                    clearFusion(); // Clear previous fusion
+                    applyFusion(); // Apply new fusion
                 });
                 dropdownMenu.appendChild(option);
             });
@@ -337,13 +338,15 @@ function setupFusionSelector() {
         }
     });
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.dropdown')) {
-            dropdownMenu.classList.remove('show');
-        }
+    input.addEventListener('blur', () => {
+        // Hide dropdown after focus is lost
+        setTimeout(() => dropdownMenu.classList.remove('show'), 100);
     });
 
-    document.getElementById('fusion-type').addEventListener('change', applyFusion);
+    document.getElementById('fusion-type').addEventListener('change', () => {
+        clearFusion(); // Clear previous fusion
+        applyFusion(); // Apply new fusion
+    });
 }
 
 function calculateFusedStats(basePokemon, fusionPokemon, fusionType) {
@@ -420,7 +423,8 @@ function clearFusion() {
     input.value = '';
     input.dataset.number = '';
     document.getElementById('fusion-type').value = '';
-    applyFilters();
+    pokemonData = [...originalPokemonData]; // Reset to original data
+    applyFilters(); // Reapply filters to update table
 }
 
 document.addEventListener('DOMContentLoaded', loadData);
