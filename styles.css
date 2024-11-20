@@ -295,3 +295,44 @@ tbody tr:last-child td:last-child {
 #pokemon-select {
     min-width: 200px;
 }
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--darker);
+    border: 1px solid var(--lighter);
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-menu div {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.dropdown-menu div:hover {
+    background-color: var(--lighter);
+}
+
+.input-field {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--lighter);
+    border-radius: 4px;
+    background-color: var(--darker);
+    color: var(--text);
+}
