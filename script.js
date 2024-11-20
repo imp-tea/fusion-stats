@@ -150,7 +150,19 @@ function addRule(button) {
     const rulesContainer = filterGroup;
     const ruleDiv = document.createElement('div');
     ruleDiv.className = 'filter-rule';
-    ruleDiv.innerHTML = filterGroup.querySelector('.filter-rule').innerHTML;
+    
+    // Get the HTML from the first rule but exclude any existing delete buttons
+    const templateRule = filterGroup.querySelector('.filter-rule');
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = templateRule.innerHTML;
+    // Remove any existing delete filter buttons
+    const deleteFilters = tempDiv.querySelectorAll('button');
+    deleteFilters.forEach(btn => {
+        if (btn.textContent === 'Delete Filter') {
+            btn.remove();
+        }
+    });
+    ruleDiv.innerHTML = tempDiv.innerHTML;
 
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete Rule';
@@ -171,15 +183,15 @@ function addFilter() {
     const filterGroupsContainer = document.getElementById('filter-groups');
 
     const hr = document.createElement('hr');
+    hr.style.borderColor = 'var(--lighter)'; // This addresses point 4
     filterGroupsContainer.appendChild(hr);
 
     const filterGroup = document.createElement('div');
     filterGroup.className = 'filter-group';
 
-    const ruleDiv = document.createElement('div');
-    ruleDiv.className = 'filter-rule';
-    ruleDiv.innerHTML = document.querySelector('.filter-group .filter-rule').innerHTML;
-
+    // Create header div for the delete button
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'filter-group-header';
     const deleteFilterButton = document.createElement('button');
     deleteFilterButton.textContent = 'Delete Filter';
     deleteFilterButton.onclick = () => {
@@ -187,7 +199,12 @@ function addFilter() {
         filterGroup.remove();
         applyFilters();
     };
-    ruleDiv.insertBefore(deleteFilterButton, ruleDiv.firstChild);
+    headerDiv.appendChild(deleteFilterButton);
+    filterGroup.appendChild(headerDiv);
+
+    const ruleDiv = document.createElement('div');
+    ruleDiv.className = 'filter-rule';
+    ruleDiv.innerHTML = document.querySelector('.filter-group .filter-rule').innerHTML;
 
     filterGroup.appendChild(ruleDiv);
 
@@ -436,8 +453,9 @@ function applyFusion() {
 
     if (input.dataset.number && fusionType.value) {
         const selectedPokemon = originalPokemonData.find(p => p.Number === input.dataset.number);
-
-        pokemonData = pokemonData.map(pokemon => 
+        const currentData = [...pokemonData]; // Store current filtered data
+        
+        pokemonData = currentData.map(pokemon => 
             calculateFusedStats(pokemon, selectedPokemon, fusionType.value)
         );
     }
