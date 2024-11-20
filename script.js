@@ -443,6 +443,7 @@ function applyFusion() {
     }
 
     updateTable();
+    applyFilters();
 }
 
 function clearFusion() {
