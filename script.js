@@ -2,10 +2,6 @@ let pokemonData = [];
 let originalPokemonData = [];
 let currentSortColumn = null;
 let sortAscending = true;
-let selectedPokemon = null;
-let fusionType = null;
-let filterGroups = [[]];
-let currentFilterGroup = 0;
 
 const DEFAULT_COLUMNS = [
     'Number', 'Name', 'HP', 'Attack', 'Defense', 
@@ -14,7 +10,7 @@ const DEFAULT_COLUMNS = [
 ];
 
 const TYPE_OPTIONS = [
-    '---', 'Any', 'Normal', 'Grass', 'Fire', 'Water', 'Bug', 'Poison', 
+    '---', 'Normal', 'Grass', 'Fire', 'Water', 'Bug', 'Poison', 
     'Flying', 'Rock', 'Ground', 'Fairy', 'Fighting', 'Psychic', 'Dark', 
     'Ghost', 'Ice', 'Steel', 'Dragon', 'Electric', 'None'
 ];
@@ -28,7 +24,7 @@ async function loadData() {
     const text = await response.text();
     const rows = text.split('\n');
     const headers = rows[0].split(',');
-    
+
     pokemonData = rows.slice(1).filter(row => row.trim()).map(row => {
         const values = row.split(',');
         const obj = {};
@@ -41,23 +37,22 @@ async function loadData() {
     originalPokemonData = [...pokemonData];
     setupTable();
     setupFilterRuleEvents();
-    setupPokemonSelect(); // Add this line
-    setupFusionHandlers(); // Add this line
-    updateTable();
+    setupFusionSelector();
+    applyFilters();
 }
 
 function setupTable() {
     const table = document.getElementById('pokemon-table');
     const thead = table.querySelector('thead');
     const headerRow = document.createElement('tr');
-    
+
     DEFAULT_COLUMNS.forEach(key => {
         const th = document.createElement('th');
         th.textContent = key;
         th.onclick = () => sortTable(key);
         headerRow.appendChild(th);
     });
-    
+
     thead.appendChild(headerRow);
 }
 
@@ -66,17 +61,16 @@ function updateTable() {
     tbody.innerHTML = '';
 
     pokemonData.forEach(pokemon => {
-        const displayPokemon = calculateFusedStats(pokemon);
         const row = document.createElement('tr');
         DEFAULT_COLUMNS.forEach(key => {
             const td = document.createElement('td');
             if (key === 'Name') {
                 const link = document.createElement('a');
-                link.href = `https://www.fusiondex.org/${displayPokemon.Number}/`;
-                link.textContent = displayPokemon[key];
+                link.href = `https://www.fusiondex.org/${pokemon.Number}/`;
+                link.textContent = pokemon[key];
                 td.appendChild(link);
             } else {
-                td.textContent = displayPokemon[key];
+                td.textContent = pokemon[key];
             }
             row.appendChild(td);
         });
@@ -110,27 +104,20 @@ function sortTable(column) {
 }
 
 function setupFilterRuleEvents() {
-    // Add this section to populate column options if they're empty
-    document.querySelectorAll('.rule-column').forEach(select => {
-        if (select.options.length <= 1) {  // If only the "---" option exists or empty
-            select.innerHTML = '<option value="">---</option>';
-            DEFAULT_COLUMNS.forEach(column => {
-                const option = document.createElement('option');
-                option.value = column;
-                option.textContent = column;
-                select.appendChild(option);
-            });
-        }
-        select.addEventListener('change', updateConditionOptions);
-    });
-
     document.querySelectorAll('.filter-rule').forEach(rule => {
-        rule.querySelectorAll('select, input').forEach(element => {
-            element.addEventListener('change', () => {
-                applyFilters();
-            });
+        setupFilterRuleEventsForRule(rule);
+    });
+}
+
+function setupFilterRuleEventsForRule(rule) {
+    rule.querySelectorAll('select, input').forEach(element => {
+        element.addEventListener('change', () => {
+            applyFilters();
         });
     });
+
+    const columnSelect = rule.querySelector('.rule-column');
+    columnSelect.addEventListener('change', updateConditionOptions);
 }
 
 function updateConditionOptions(event) {
@@ -158,13 +145,13 @@ function updateConditionOptions(event) {
     });
 }
 
-function addRule() {
-    const rulesContainer = document.getElementById('filter-rules');
-    
+function addRule(button) {
+    const filterGroup = button.closest('.filter-group');
+    const rulesContainer = filterGroup;
     const ruleDiv = document.createElement('div');
     ruleDiv.className = 'filter-rule';
-    ruleDiv.innerHTML = document.querySelector('.filter-rule').innerHTML;
-    
+    ruleDiv.innerHTML = filterGroup.querySelector('.filter-rule').innerHTML;
+
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete Rule';
     deleteButton.onclick = () => {
@@ -172,11 +159,50 @@ function addRule() {
         applyFilters();
     };
     ruleDiv.appendChild(deleteButton);
-    
-    const buttonsDiv = document.querySelector('.rule-buttons');
+
+    const buttonsDiv = filterGroup.querySelector('.rule-buttons');
     rulesContainer.insertBefore(ruleDiv, buttonsDiv);
-    
-    setupFilterRuleEvents();
+
+    setupFilterRuleEventsForRule(ruleDiv);
+    applyFilters();
+}
+
+function addFilter() {
+    const filterGroupsContainer = document.getElementById('filter-groups');
+
+    const hr = document.createElement('hr');
+    filterGroupsContainer.appendChild(hr);
+
+    const filterGroup = document.createElement('div');
+    filterGroup.className = 'filter-group';
+
+    const ruleDiv = document.createElement('div');
+    ruleDiv.className = 'filter-rule';
+    ruleDiv.innerHTML = document.querySelector('.filter-group .filter-rule').innerHTML;
+
+    const deleteFilterButton = document.createElement('button');
+    deleteFilterButton.textContent = 'Delete Filter';
+    deleteFilterButton.onclick = () => {
+        hr.remove();
+        filterGroup.remove();
+        applyFilters();
+    };
+    ruleDiv.insertBefore(deleteFilterButton, ruleDiv.firstChild);
+
+    filterGroup.appendChild(ruleDiv);
+
+    const ruleButtonsDiv = document.createElement('div');
+    ruleButtonsDiv.className = 'rule-buttons';
+    const addRuleButton = document.createElement('button');
+    addRuleButton.textContent = 'Add Rule';
+    addRuleButton.onclick = () => addRule(addRuleButton);
+    ruleButtonsDiv.appendChild(addRuleButton);
+
+    filterGroup.appendChild(ruleButtonsDiv);
+
+    filterGroupsContainer.appendChild(filterGroup);
+
+    setupFilterRuleEventsForRule(ruleDiv);
     applyFilters();
 }
 
@@ -186,81 +212,76 @@ function toggleTreeItem(header) {
 }
 
 function applyFilters() {
-    if (filterGroups.every(group => group.length === 0)) {
+    const filters = getAllFilterRules();
+    if (filters.length === 0) {
         pokemonData = [...originalPokemonData];
-        updateTable();
-        return;
-    }
-
-    // Apply each filter group to the original data and combine results
-    const results = filterGroups
-        .filter(group => group.length > 0)
-        .map(group => {
+    } else {
+        const filteredDataSets = filters.map(rules => {
             let filteredData = [...originalPokemonData];
-            let currentResult = [];
-
-            group.forEach((rule, index) => {
-                if (index === 0) {
-                    currentResult = filterByRule(filteredData, rule);
-                } else {
-                    // Within a group, rules are combined with AND
-                    currentResult = filterByRule(currentResult, rule);
-                }
+            rules.forEach(rule => {
+                filteredData = filterByRule(filteredData, rule);
             });
-
-            return currentResult;
+            return filteredData;
         });
 
-    // Combine results from all filter groups (OR operation between groups)
-    pokemonData = [...new Set(results.flat())];
-    updateTable();
+        let combinedData = [];
+        const seenNumbers = new Set();
+
+        filteredDataSets.forEach(dataSet => {
+            dataSet.forEach(pokemon => {
+                if (!seenNumbers.has(pokemon.Number)) {
+                    combinedData.push(pokemon);
+                    seenNumbers.add(pokemon.Number);
+                }
+            });
+        });
+
+        pokemonData = combinedData;
+    }
+
+    applyFusion();
 }
 
 function getAllFilterRules() {
-    const rulesContainer = document.getElementById('filter-rules');
-    filterGroups = [[]];
-    let currentGroup = 0;
-    
-    rulesContainer.childNodes.forEach(node => {
-        if (node.tagName === 'HR') {
-            filterGroups.push([]);
-            currentGroup++;
-        } else if (node.className === 'filter-rule') {
+    const filtersContainer = document.getElementById('filter-groups');
+    const filters = [];
+
+    filtersContainer.querySelectorAll('.filter-group').forEach(filterGroup => {
+        const rules = [];
+        filterGroup.querySelectorAll('.filter-rule').forEach(ruleDiv => {
             const rule = {
-                action: node.querySelector('.rule-type').value,
-                column: node.querySelector('.rule-column').value,
-                condition: node.querySelector('.rule-condition').value,
-                value: node.querySelector('.rule-value').value,
-                type: 'rule'
+                action: ruleDiv.querySelector('.rule-type').value,
+                column: ruleDiv.querySelector('.rule-column').value,
+                condition: ruleDiv.querySelector('.rule-condition').value,
+                value: ruleDiv.querySelector('.rule-value').value
             };
             if (rule.action && rule.column && rule.condition) {
-                filterGroups[currentGroup].push(rule);
+                rules.push(rule);
             }
+        });
+        if (rules.length > 0) {
+            filters.push(rules);
         }
     });
-    
-    // Remove empty groups
-    filterGroups = filterGroups.filter(group => group.length > 0);
-    return filterGroups;
+    return filters;
 }
 
 function filterByRule(data, rule) {
     const filterFunction = pokemon => {
         const value = pokemon[rule.column];
-        
+
         if (['Type 1', 'Type 2'].includes(rule.column)) {
             if (rule.condition === 'Any') {
                 return true;
             } else if (rule.condition === 'None') {
                 return !value || value === '';
             } else {
-                // Case-insensitive comparison for types
                 return value.toUpperCase() === rule.condition.toUpperCase();
             }
         } else {
             const numValue = Number(value);
             const ruleValue = Number(rule.value);
-            
+
             switch (rule.condition) {
                 case 'Is Greater Than':
                     return numValue > ruleValue;
@@ -279,109 +300,127 @@ function filterByRule(data, rule) {
         : data.filter(filterFunction);
 }
 
-function setupPokemonSelect() {
-    const select = document.getElementById('pokemon-select');
-    const uniqueNames = [...new Set(originalPokemonData.map(p => p.Name))];
-    
-    uniqueNames.sort((a, b) => {
-        const numA = parseInt(originalPokemonData.find(p => p.Name === a).Number);
-        const numB = parseInt(originalPokemonData.find(p => p.Name === b).Number);
-        return numA - numB;
+function setupFusionSelector() {
+    const input = document.getElementById('pokemon-select');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+
+    const pokemonList = originalPokemonData.sort((a, b) => Number(a.Number) - Number(b.Number));
+
+    input.addEventListener('input', () => {
+        const query = input.value.toLowerCase();
+        dropdownMenu.innerHTML = '';
+        if (query) {
+            const filteredPokemon = pokemonList.filter(pokemon => 
+                pokemon.Name.toLowerCase().includes(query)
+            );
+            filteredPokemon.forEach(pokemon => {
+                const option = document.createElement('div');
+                option.textContent = pokemon.Name;
+                option.dataset.number = pokemon.Number;
+                option.addEventListener('click', () => {
+                    input.value = pokemon.Name;
+                    input.dataset.number = pokemon.Number;
+                    dropdownMenu.classList.remove('show');
+                    applyFusion();
+                });
+                dropdownMenu.appendChild(option);
+            });
+            dropdownMenu.classList.add('show');
+        } else {
+            dropdownMenu.classList.remove('show');
+        }
     });
 
-    uniqueNames.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        select.appendChild(option);
+    input.addEventListener('focus', () => {
+        if (dropdownMenu.innerHTML) {
+            dropdownMenu.classList.add('show');
+        }
     });
 
-    // Add search functionality
-    select.addEventListener('keyup', (e) => {
-        const input = e.target.value.toLowerCase();
-        Array.from(select.options).forEach(option => {
-            const text = option.text.toLowerCase();
-            option.style.display = text.includes(input) ? '' : 'none';
-        });
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+            dropdownMenu.classList.remove('show');
+        }
     });
+
+    document.getElementById('fusion-type').addEventListener('change', applyFusion);
 }
 
-function calculateFusedStats(baseRow) {
-    if (!selectedPokemon || !fusionType) return baseRow;
-
-    const basePokemon = originalPokemonData.find(p => p.Name === selectedPokemon);
-    if (!basePokemon) return baseRow;
-
-    const result = {...baseRow};
+function calculateFusedStats(basePokemon, fusionPokemon, fusionType) {
+    const result = {...basePokemon};
     const isHead = fusionType === 'head';
-    const headPokemon = isHead ? basePokemon : baseRow;
-    const bodyPokemon = isHead ? baseRow : basePokemon;
 
-    // Calculate stats
     const headStats = ['Attack', 'Defense', 'Speed'];
     const bodyStats = ['HP', 'Special Attack', 'Special Defense'];
 
     headStats.forEach(stat => {
-        const headVal = parseInt(headPokemon[stat]);
-        const bodyVal = parseInt(bodyPokemon[stat]);
-        result[stat] = Math.floor((2 * headVal + bodyVal) / 3);
+        result[stat] = Math.floor(
+            isHead ? 
+            (2 * Number(fusionPokemon[stat]) + Number(basePokemon[stat])) / 3 :
+            (2 * Number(basePokemon[stat]) + Number(fusionPokemon[stat])) / 3
+        );
     });
 
     bodyStats.forEach(stat => {
-        const bodyVal = parseInt(bodyPokemon[stat]);
-        const headVal = parseInt(headPokemon[stat]);
-        result[stat] = Math.floor((2 * bodyVal + headVal) / 3);
+        result[stat] = Math.floor(
+            !isHead ? 
+            (2 * Number(fusionPokemon[stat]) + Number(basePokemon[stat])) / 3 :
+            (2 * Number(basePokemon[stat]) + Number(fusionPokemon[stat])) / 3
+        );
     });
 
-    // Calculate totals
-    result['BST'] = ['HP', 'Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed']
-        .reduce((sum, stat) => sum + parseInt(result[stat]), 0);
+    result['BST'] = headStats.concat(bodyStats)
+        .reduce((sum, stat) => sum + Number(result[stat]), 0);
     
     result['Head Stat Total'] = headStats
-        .reduce((sum, stat) => sum + parseInt(result[stat]), 0);
+        .reduce((sum, stat) => sum + Number(result[stat]), 0);
     
     result['Body Stat Total'] = bodyStats
-        .reduce((sum, stat) => sum + parseInt(result[stat]), 0);
+        .reduce((sum, stat) => sum + Number(result[stat]), 0);
 
-    // Rest of the function remains the same...
+    const headPokemon = isHead ? fusionPokemon : basePokemon;
+    const bodyPokemon = isHead ? basePokemon : fusionPokemon;
+
+    if (headPokemon['Type 1'] === 'Normal' && headPokemon['Type 2'] === 'Flying') {
+        result['Type 1'] = headPokemon['Type 2'];
+    } else {
+        result['Type 1'] = headPokemon['Type 1'];
+    }
+
+    if (bodyPokemon['Type 2'] === result['Type 1']) {
+        result['Type 2'] = bodyPokemon['Type 1'];
+    } else {
+        result['Type 2'] = bodyPokemon['Type 2'];
+    }
+
+    const headNum = isHead ? fusionPokemon.Number : basePokemon.Number;
+    const bodyNum = isHead ? basePokemon.Number : fusionPokemon.Number;
+    result.Number = `${headNum}.${bodyNum}`;
+
     return result;
 }
 
-function setupFusionHandlers() {
-    document.getElementById('pokemon-select').addEventListener('change', (e) => {
-        selectedPokemon = e.target.value;
-        applyFusion();
-    });
+function applyFusion() {
+    const input = document.getElementById('pokemon-select');
+    const fusionType = document.getElementById('fusion-type');
 
-    document.getElementById('fusion-type').addEventListener('change', (e) => {
-        fusionType = e.target.value;
-        applyFusion();
-    });
+    if (input.dataset.number && fusionType.value) {
+        const selectedPokemon = originalPokemonData.find(p => p.Number === input.dataset.number);
+
+        pokemonData = pokemonData.map(pokemon => 
+            calculateFusedStats(pokemon, selectedPokemon, fusionType.value)
+        );
+    }
+
+    updateTable();
 }
 
 function clearFusion() {
-    document.getElementById('pokemon-select').value = '';
+    const input = document.getElementById('pokemon-select');
+    input.value = '';
+    input.dataset.number = '';
     document.getElementById('fusion-type').value = '';
-    selectedPokemon = null;
-    fusionType = null;
     applyFilters();
-}
-
-function applyFusion() {
-    if (selectedPokemon && fusionType) {
-        applyFilters();
-    }
-}
-
-function addNewFilter() {
-    filterGroups.push([]);
-    currentFilterGroup = filterGroups.length - 1;
-    
-    const rulesContainer = document.getElementById('filter-rules');
-    const hr = document.createElement('hr');
-    rulesContainer.insertBefore(hr, document.querySelector('.rule-buttons'));
-    
-    addRule();
 }
 
 document.addEventListener('DOMContentLoaded', loadData);
