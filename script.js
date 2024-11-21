@@ -299,8 +299,8 @@ function calculateFusedStats(basePokemon, fusionPokemon, fusionType) {
     const isHead = fusionType === 'head';
     
     // Calculate stats
-    const headStats = ['Attack', 'Defense', 'Speed'];
-    const bodyStats = ['HP', 'Special Attack', 'Special Defense'];
+    const bodyStats = ['Attack', 'Defense', 'Speed'];
+    const headStats = ['HP', 'Special Attack', 'Special Defense'];
     
     headStats.forEach(stat => {
         result[stat] = Math.floor(
